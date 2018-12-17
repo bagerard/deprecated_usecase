@@ -10,9 +10,8 @@ Bug reports
 
 When `reporting a bug <https://github.com/bagerard/py-usecase/issues>`_ please include:
 
-    * Your operating system name and version.
     * Any details about your local setup that might be helpful in troubleshooting.
-    * Detailed steps to reproduce the bug.
+    * Detailed steps to reproduce the bug, ideally a code snippet
 
 Documentation improvements
 ==========================

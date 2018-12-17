@@ -2,4 +2,4 @@
 Authors
 =======
 
-* Bastien Gérard - _
+* Bastien Gérard - https://github.com/bagerard
