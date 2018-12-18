@@ -1,6 +1,7 @@
 import abc
 
 from usecase.errors import MissingPrivilegeError, UserNotAuthenticatedError
+from usecase.privilege import Privilege
 from usecase.request_object import RequestObjectMeta
 
 
@@ -26,7 +27,7 @@ def use_case_config(privilege=None, request_object=type(None)):
     :rtype: cls
     """
     def class_rebuilder(cls):
-        # assert isinstance(privilege, (Privilege, type(None)))     #TODO
+        assert isinstance(privilege, (Privilege, type(None)))
         assert isinstance(request_object, (RequestObjectMeta)) or request_object is type(None)
 
         cls.privilege = privilege
@@ -34,16 +35,16 @@ def use_case_config(privilege=None, request_object=type(None)):
         return cls
     return class_rebuilder
 
-
-class UseCase(object, metaclass=abc.ABCMeta):
-    request_object = type(None)     # class of the RequestObject attached to the use case
-
-    def execute(self, req_obj=None, *args, **kwargs):
-        return self._execute(req_obj, *args, **kwargs)
-
-    @abc.abstractmethod
-    def _execute(self, req_obj):
-        pass
+#
+# class UseCase(object, metaclass=abc.ABCMeta):
+#     request_object = type(None)     # class of the RequestObject attached to the use case
+#
+#     def execute(self, req_obj=None, *args, **kwargs):
+#         return self._execute(req_obj, *args, **kwargs)
+#
+#     @abc.abstractmethod
+#     def _execute(self, req_obj):
+#         pass
 
 
 class UseCase(object, metaclass=abc.ABCMeta):
@@ -58,7 +59,9 @@ class UseCase(object, metaclass=abc.ABCMeta):
             self._verify_logged_user()
             self._verify_privilege()
 
-        assert isinstance(req_obj, self.request_object), f'{type(req_obj)} request object is not of type {self.request_object}'
+        if not isinstance(req_obj, self.request_object):
+            req_obj_cls = req_obj.__class__.__name__
+            raise ValueError(f'{req_obj_cls} request object provided to use case is not of type {self.request_object}')
         return self._execute(req_obj, *args, **kwargs)
 
     def _verify_privilege(self):
@@ -66,11 +69,11 @@ class UseCase(object, metaclass=abc.ABCMeta):
         logged_user = self.logged_user
 
         if not logged_user.has_privilege(privilege):
-            raise MissingPrivilegeError(f"{logged_user} is missing privilege {privilege.name}")
+            raise MissingPrivilegeError(f'{logged_user} is missing privilege {privilege.name}')
 
     def _verify_logged_user(self):
         if not self.logged_user:
-            raise UserNotAuthenticatedError('No user is logged for {}'.format(self.__class__.__name__))
+            raise UserNotAuthenticatedError(f'No user is logged for {self.__class__.__name__}')
 
     @abc.abstractmethod
     def _execute(self, req_obj):
