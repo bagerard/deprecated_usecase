@@ -6,7 +6,9 @@ class DynamicFeSchema(fe.Schema):
     It allows to create a Schema class from a constructor i.o using the class attributes
     which allow schemas to be created on the fly
     """
+    # if_key_missing = fe.NoDefault       # Missing key will be set to this (allows key with default value to be missing)
     allow_extra_fields = False
+    filter_extra_fields = True
 
     def __init__(self, chained_validators=(), **validators):
         super(DynamicFeSchema, self).__init__()
@@ -47,6 +49,8 @@ class RequestObjectMeta(type):
     def collect_new_attrs(attrs):
         """Turn fe.validators into FieldValidator and collect the fields"""
         new_attrs = {}
+
+        # Collect formencode custom fields
         fields_validators = {}
         validators_options = {}
         for attr_name, attr in attrs.items():
@@ -54,38 +58,34 @@ class RequestObjectMeta(type):
                 new_attrs[attr_name] = FieldValidator(attr)
                 fields_validators[attr_name] = attr
             else:
-                if attr_name in ('chained_validators', 'json_fields'):
+                if attr_name == 'chained_validators':
                     validators_options[attr_name] = attr
                 new_attrs[attr_name] = attr
 
-        new_attrs['_fields_validators'] = fields_validators
-        new_attrs['_validators_options'] = validators_options
+        new_attrs['_validator_schema'] = DynamicFeSchema(
+            **fields_validators,
+            **validators_options,
+        )
         return new_attrs
 
 
 class UseCaseRequestObject(object, metaclass=RequestObjectMeta):
 
     def __init__(self, **values):
-        expected_fields = set(self._fields_validators)
+        expected_fields = set(self._validator_schema.fields)
 
         init_fields = set(values.keys())
         if init_fields != expected_fields:
             too_much = init_fields - expected_fields
             missing = expected_fields - init_fields
-            raise ValueError(f"All RequestObject must be provided:\n{too_much}\n{missing}")
+            raise ValueError(f"All RequestObject fields must be provided:\n{too_much}\n{missing}")
 
         for attr_name, attr_value in values.items():
             setattr(self, attr_name, attr_value)
 
     @classmethod
     def from_dict(cls, dict_):
-        # if not dict_:
-        #     return cls()
-        parser = DynamicFeSchema(
-            **cls._fields_validators,
-            **cls._validators_options,
-        )
-        res = parser.to_python(dict_)
+        res = cls._validator_schema.to_python(dict_)
         return cls(**res)
 
 

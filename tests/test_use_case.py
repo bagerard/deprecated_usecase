@@ -71,6 +71,15 @@ class TestUseCase:
         with pytest.raises(ValueError, match="request object provided to use case is not of type"):
             uc.execute(wrong_ro)
 
+    def test__execute_using_simple_dict_as_request_object(self, logged_user):
+        class SampleUseCase(UseCase):
+            request_object = dict
+
+            def _execute(self, req_obj):
+                return True
+
+        uc = SampleUseCase()
+        assert uc.execute(req_obj={'test': 1}) is True
 
 class TestUseCaseUtils:
     def test_use_case_config(self, logged_user):
