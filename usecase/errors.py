@@ -1,3 +1,6 @@
+from usecase import Privilege
+
+
 class UseCaseError(Exception):
     """Base class for Use cases exceptions"""
 
@@ -16,9 +19,9 @@ class UserNotPermitted(UseCaseError):
 
 class MissingPrivilegeError(UseCaseError):
     """Action requires a specific privilege (equivalent of HTTP 401)"""
-    # def __init__(self, privilege):
-    #     msg = privilege.name if isinstance(privilege, Privilege) else privilege
-    #     super(MissingPrivilegeError, self).__init__(msg)
+    def __init__(self, privilege):
+        msg = privilege.name if isinstance(privilege, Privilege) else privilege
+        super(MissingPrivilegeError, self).__init__(msg)
 
 
 class RestrictedToRootError(UserNotPermitted):

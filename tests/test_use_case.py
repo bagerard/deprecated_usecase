@@ -6,8 +6,7 @@ import pytest
 from usecase.errors import MissingPrivilegeError, UserNotAuthenticatedError
 from usecase.privilege import Privilege
 from usecase.request_object import UseCaseRequestObject
-from usecase.use_case import UseCase
-
+from usecase.use_case import UseCase, use_case_config
 
 sample_privilege1 = Privilege(
         name='SamplePrivilege',
@@ -25,32 +24,6 @@ class SampleUseCase(UseCase):
 
     def _execute(self, req_obj):
         return True
-
-    # def __init__(self, logged_user=None):
-    #     self.logged_user = logged_user
-    #
-    # def execute(self, req_obj=None, *args, **kwargs):
-    #     if self.privilege:
-    #         self._verify_logged_user()
-    #         self._verify_privilege()
-    #
-    #     assert isinstance(req_obj, self.request_object), f'{type(req_obj)} request object is not of type {self.request_object}'
-    #     return self._execute(req_obj, *args, **kwargs)
-    #
-    # def _verify_privilege(self):
-    #     privilege = self.privilege
-    #     logged_user = self.logged_user
-    #
-    #     if not logged_user.has_privilege(privilege):
-    #         raise MissingPrivilegeError(f"{logged_user} is missing privilege {privilege.name}")
-    #
-    # def _verify_logged_user(self):
-    #     if not self.logged_user:
-    #         raise UserNotAuthenticatedError('No user is logged for {}'.format(self.__class__.__name__))
-    #
-    # @abc.abstractmethod
-    # def _execute(self, req_obj):
-    #     pass
 
 
 @pytest.fixture()
@@ -97,3 +70,19 @@ class TestUseCase:
         uc = SampleUseCase(logged_user=logged_user)
         with pytest.raises(ValueError, match="request object provided to use case is not of type"):
             uc.execute(wrong_ro)
+
+
+class TestUseCaseUtils:
+    def test_use_case_config(self, logged_user):
+
+        @use_case_config(sample_privilege1, SampleRO)
+        class DecoratedUseCase(UseCase):
+            def _execute(self, req_obj):
+                return True
+
+        assert DecoratedUseCase.privilege is sample_privilege1
+        assert DecoratedUseCase.request_object is SampleRO
+
+        ro = SampleRO(name='John')
+        uc = DecoratedUseCase(logged_user=logged_user)
+        assert uc.execute(ro) is True

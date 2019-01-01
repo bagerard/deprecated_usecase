@@ -35,17 +35,6 @@ def use_case_config(privilege=None, request_object=type(None)):
         return cls
     return class_rebuilder
 
-#
-# class UseCase(object, metaclass=abc.ABCMeta):
-#     request_object = type(None)     # class of the RequestObject attached to the use case
-#
-#     def execute(self, req_obj=None, *args, **kwargs):
-#         return self._execute(req_obj, *args, **kwargs)
-#
-#     @abc.abstractmethod
-#     def _execute(self, req_obj):
-#         pass
-
 
 class UseCase(object, metaclass=abc.ABCMeta):
     privilege = None                # Will require a logged_user by definition

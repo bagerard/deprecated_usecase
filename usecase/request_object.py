@@ -1,48 +1,18 @@
-import json
-from collections import namedtuple
-
 import formencode as fe
 
 
-class RequestArgParser(fe.Schema):
-    """This is a dynamic implementation of formencode.Schema
-    Given a dict, it will validate it against the formencode.validators
-    provided in the constructor. In case validation(s) fails, it will raise an
-    formencode.validators.Invalid exception with the details of the problem
+class DynamicFeSchema(fe.Schema):
+    """Dynamic implementation of formencode.Schema
+    It allows to create a Schema class from a constructor i.o using the class attributes
+    which allow schemas to be created on the fly
     """
-    allow_extra_fields = True
-    filter_extra_fields = True
+    allow_extra_fields = False
 
-    def __init__(self, chained_validators=None, json_fields=None, if_missing=fe.NoDefault, **validators):
-        super(RequestArgParser, self).__init__()
-        self.if_missing = if_missing
+    def __init__(self, chained_validators=(), **validators):
+        super(DynamicFeSchema, self).__init__()
         for k, v in validators.items():
             self.add_field(k, v)
-        self.chained_validators = chained_validators or ()
-        self.json_fields = json_fields or ()
-
-    def _convert_to_python(self, value_dict, state=None):
-        """return a namedtuple"""
-        if not isinstance(value_dict, dict):
-            raise fe.Invalid('Invalid value: expected an object but received {}'.format(type(value_dict)),
-                             value_dict, state)
-        value_dict = self._clean_dict(value_dict, state)
-        res_dic = super(RequestArgParser, self)._convert_to_python(value_dict, state)
-        if res_dic is None:
-            return res_dic
-        keys, vals = list(zip(*res_dic.items()))
-        return namedtuple('RequestObj', keys)(*vals)
-
-    def _clean_dict(self, value_dict, state=None):
-        clean_dict = {}
-        for key, value in value_dict.items():
-            try:
-                value = json.loads(value) if key in self.json_fields else value
-            except (ValueError, TypeError):
-                raise fe.Invalid('Invalid JSON for key [{}]: [{}]'.format(key, value),
-                                 value_dict, state)
-            clean_dict[key] = value
-        return clean_dict
+        self.chained_validators = chained_validators
 
 
 class FieldValidator:
@@ -111,9 +81,12 @@ class UseCaseRequestObject(object, metaclass=RequestObjectMeta):
     def from_dict(cls, dict_):
         # if not dict_:
         #     return cls()
-        parser = RequestArgParser(
+        parser = DynamicFeSchema(
             **cls._fields_validators,
             **cls._validators_options,
         )
         res = parser.to_python(dict_)
-        return cls(**res._asdict())
+        return cls(**res)
+
+
+
