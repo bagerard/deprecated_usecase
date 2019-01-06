@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 import formencode as fe
 import pytest
 
@@ -80,6 +78,7 @@ class TestUseCase:
 
         uc = SampleUseCase()
         assert uc.execute(req_obj={'test': 1}) is True
+
 
 class TestUseCaseUtils:
     def test_use_case_config(self, logged_user):

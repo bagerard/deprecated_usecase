@@ -1,6 +1,5 @@
 from usecase.privilege import Privilege
 
-
 sample_privilege1 = Privilege(
         name='SamplePrivilege',
         description='whatever',

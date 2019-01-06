@@ -4,11 +4,12 @@ from usecase.errors import MissingPrivilegeError, UserNotAuthenticatedError
 from usecase.privilege import Privilege
 from usecase.request_object import RequestObjectMeta
 
-
 NoPrivilege = None  # Sentinel that can be used to identify use case that don't need privileges
 
+NoneType = type(None)
 
-def use_case_config(privilege=None, request_object=type(None)):
+
+def use_case_config(privilege=None, request_object=NoneType):
     """Class decorator that allows to attach a privilege and a request_object class
     to a certain use case class
 
@@ -27,8 +28,8 @@ def use_case_config(privilege=None, request_object=type(None)):
     :rtype: cls
     """
     def class_rebuilder(cls):
-        assert isinstance(privilege, (Privilege, type(None)))
-        assert isinstance(request_object, (RequestObjectMeta)) or request_object is type(None)
+        assert isinstance(privilege, (Privilege, NoneType))
+        assert isinstance(request_object, (RequestObjectMeta)) or request_object is NoneType
 
         cls.privilege = privilege
         cls.request_object = request_object
@@ -38,7 +39,7 @@ def use_case_config(privilege=None, request_object=type(None)):
 
 class UseCase(object, metaclass=abc.ABCMeta):
     privilege = None                # Will require a logged_user by definition
-    request_object = type(None)     # class of the RequestObject attached to the use case
+    request_object = NoneType     # class of the RequestObject attached to the use case
 
     def __init__(self, logged_user=None):
         self.logged_user = logged_user

@@ -1,6 +1,6 @@
 [paths]
 source =
-   src
+   usecase
    */site-packages
 
 [run]

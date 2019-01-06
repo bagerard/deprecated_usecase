@@ -31,7 +31,7 @@ class TestUseCaseRequestObject:
 
     def test__from_dict__validation_raises(self):
         with pytest.raises(fe.Invalid, match="age"):
-            Human.from_dict({'name': 'John', 'age': [1,2]})
+            Human.from_dict({'name': 'John', 'age': [1, 2]})
 
     def test__from_dict__empty_dict_takes_default(self):
         class SampleRO(UseCaseRequestObject):

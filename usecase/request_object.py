@@ -87,6 +87,3 @@ class UseCaseRequestObject(object, metaclass=RequestObjectMeta):
     def from_dict(cls, dict_):
         res = cls._validator_schema.to_python(dict_)
         return cls(**res)
-
-
-
