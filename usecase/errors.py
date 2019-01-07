@@ -1,4 +1,4 @@
-from usecase import Privilege
+from usecase.privilege import Privilege
 
 
 class UseCaseError(Exception):
